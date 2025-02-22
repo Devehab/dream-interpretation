@@ -6,6 +6,7 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+.DS_Store
 
 # ملفات Jupyter Notebook المؤقتة
 .ipynb_checkpoints/

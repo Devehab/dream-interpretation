@@ -156,6 +156,42 @@ You can deploy this application on a live server like **Render** by following th
 
 Once the application is running, open a web browser and go to `http://127.0.0.1:3000` or the deployed Render URL. Enter your dream description and click the "Interpret" button to receive an analysis.
 
+## 🐳 Docker Deployment
+
+You can run this application using Docker:
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t dream-interpretation .
+   ```
+
+2. **Run the container:**
+   
+   Using environment variable directly:
+   ```bash
+   docker run -d -p 3000:3000 -e GOOGLE_API_KEY=your_api_key dream-interpretation
+   ```
+
+   Or using .env file:
+   ```bash
+   docker run -d -p 3000:3000 --env-file .env dream-interpretation
+   ```
+
+3. **Access the application:**
+   Open your browser and navigate to `http://localhost:3000`
+
+4. **Useful Docker commands:**
+   ```bash
+   # View running containers
+   docker ps
+   
+   # Stop the container
+   docker stop <container_id>
+   
+   # Remove the container
+   docker rm <container_id>
+   ```
+
 ## 🤝 Contributing
 
 We welcome contributions! To contribute:
@@ -179,4 +215,3 @@ This project is licensed under the MIT License. For more details, see the [LICEN
 ---
 
 🚀 *Feel free to open issues or discussions for suggestions and improvements!*
-
