@@ -2,12 +2,43 @@ from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 import json
 import os
+import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 # Configure the Gemini API
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-model = genai.GenerativeModel('gemini-pro')
+api_key = os.getenv('GOOGLE_API_KEY')
+logger.info(f"API Key length: {len(api_key) if api_key else 'None'}")
+genai.configure(api_key=api_key)
+
+# Use the correct model name
+try:
+    # List available models to debug
+    models = genai.list_models()
+    logger.info(f"Available models: {[model.name for model in models]}")
+    
+    # Use a specific Gemini model that we know works
+    model_name = 'gemini-1.5-pro'
+    logger.info(f"Using model: {model_name}")
+    model = genai.GenerativeModel(model_name)
+except Exception as e:
+    logger.error(f"Error setting up model: {str(e)}", exc_info=True)
+    # Try an alternative model if the first one fails
+    try:
+        model_name = 'gemini-1.5-flash'
+        logger.info(f"Trying alternative model: {model_name}")
+        model = genai.GenerativeModel(model_name)
+    except Exception as e2:
+        logger.error(f"Error with alternative model: {str(e2)}", exc_info=True)
+        raise RuntimeError("Failed to initialize any Gemini model")
 
 def create_prompt(dream_description, reference_source, language):
     base_prompt = {
@@ -83,14 +114,61 @@ def interpret_dream():
     reference_source = data.get('reference')
     language = data.get('language', 'ar')
     
+    logger.info(f"Received dream interpretation request: Language={language}, Reference={reference_source}")
+    
     prompt = create_prompt(dream_text, reference_source, language)
+    logger.info(f"Created prompt with length: {len(prompt)}")
     
     try:
+        logger.info("Sending request to Gemini API")
         response = model.generate_content(prompt)
         interpretation = response.text
+        logger.info("Successfully received interpretation from Gemini API")
         return jsonify({'success': True, 'interpretation': interpretation})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        error_msg = str(e)
+        logger.error(f"Error during interpretation: {error_msg}", exc_info=True)
+        
+        # Check for quota exceeded error
+        if "429" in error_msg and "quota" in error_msg.lower():
+            user_message = {
+                "ar": "تم تجاوز حصة API. يرجى المحاولة لاحقًا أو استخدام مفتاح API آخر.",
+                "en": "API quota exceeded. Please try again later or use a different API key."
+            }
+            return jsonify({
+                'success': False, 
+                'error': error_msg,
+                'user_message': user_message[language]
+            })
+        
+        # Try with a simpler prompt as a fallback
+        try:
+            logger.info("Trying with a simpler prompt")
+            simple_prompt = f"Interpret this dream from an Islamic perspective: {dream_text}"
+            response = model.generate_content(simple_prompt)
+            interpretation = response.text
+            logger.info("Successfully received interpretation with simpler prompt")
+            return jsonify({'success': True, 'interpretation': interpretation})
+        except Exception as e2:
+            error_msg2 = str(e2)
+            logger.error(f"Error with simpler prompt: {error_msg2}", exc_info=True)
+            
+            # Check for quota exceeded error in the fallback
+            if "429" in error_msg2 and "quota" in error_msg2.lower():
+                user_message = {
+                    "ar": "تم تجاوز حصة API. يرجى المحاولة لاحقًا أو استخدام مفتاح API آخر.",
+                    "en": "API quota exceeded. Please try again later or use a different API key."
+                }
+                return jsonify({
+                    'success': False, 
+                    'error': f"Original error: {error_msg}, Fallback error: {error_msg2}",
+                    'user_message': user_message[language]
+                })
+            
+            return jsonify({
+                'success': False, 
+                'error': f"Original error: {error_msg}, Fallback error: {error_msg2}"
+            })
 
 if __name__ == '__main__':
     debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'

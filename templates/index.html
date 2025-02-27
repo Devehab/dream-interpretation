@@ -616,7 +616,12 @@
                         interpretationResult.style.display = 'block';
                         interpretationResult.scrollIntoView({ behavior: 'smooth' });
                     } else {
-                        alert('حدث خطأ أثناء التفسير / Error during interpretation');
+                        // عرض رسالة الخطأ
+                        if (data.user_message) {
+                            alert(data.user_message);
+                        } else {
+                            alert('حدث خطأ أثناء التفسير / Error during interpretation');
+                        }
                     }
                 } catch (error) {
                     alert('حدث خطأ في الاتصال / Connection error');
