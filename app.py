@@ -6,8 +6,7 @@ import os
 app = Flask(__name__)
 
 # Configure the Gemini API
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'AIzaSyCd6SRz08yFQWizRN7vRL0942x_N6HP9oA')
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 model = genai.GenerativeModel('gemini-pro')
 
 def create_prompt(dream_description, reference_source, language):
@@ -94,5 +93,5 @@ def interpret_dream():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=port)
+    debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=3000)
