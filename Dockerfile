@@ -25,6 +25,7 @@ USER appuser
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+ENV GOOGLE_API_KEY=your_api_key
 
 # Expose port
 EXPOSE 3000

@@ -158,39 +158,77 @@ Once the application is running, open a web browser and go to `http://127.0.0.1:
 
 ## 🐳 Docker Deployment
 
-You can run this application using Docker:
+### 🚀 Option 1: Quick Start with Docker Compose
 
-1. **Build the Docker image:**
-   ```bash
-   docker build -t dream-interpretation .
-   ```
+The fastest way to get up and running:
 
-2. **Run the container:**
-   
-   Using environment variable directly:
-   ```bash
-   docker run -d -p 3000:3000 -e GOOGLE_API_KEY=your_api_key dream-interpretation
-   ```
+```bash
+# Create a directory for the application
+mkdir dream-interpretation
+cd dream-interpretation
 
-   Or using .env file:
-   ```bash
-   docker run -d -p 3000:3000 --env-file .env dream-interpretation
-   ```
+# Download only the compose.yml file from GitHub
+curl -O https://raw.githubusercontent.com/Devehab/dream-interpretation/main/compose.yml
 
-3. **Access the application:**
-   Open your browser and navigate to `http://localhost:3000`
+# Edit the compose.yml file to add your Google API key
+# Replace 'your_api_key' with your actual Google API key
 
-4. **Useful Docker commands:**
-   ```bash
-   # View running containers
-   docker ps
-   
-   # Stop the container
-   docker stop <container_id>
-   
-   # Remove the container
-   docker rm <container_id>
-   ```
+# Run with Docker Compose
+docker compose up -d
+```
+
+> This will pull the pre-built image from Docker Hub and start the application with all necessary configurations.
+> Access the application at: http://localhost:3000
+
+### 🛠️ Option 2: Manual Docker Setup
+
+#### Step 1: Build the Docker Image
+
+**For Single Architecture:**
+```bash
+docker build -t dream-interpretation .
+```
+
+**For Multiple Architectures (AMD64 & ARM64):**
+```bash
+# Create and use a buildx builder
+docker buildx create --use
+
+# Build and push the multi-architecture image
+# Replace 'yourusername' with your Docker Hub username
+docker buildx build --platform linux/amd64,linux/arm64 -t yourusername/dream-interpretation:latest --push .
+```
+
+> This builds the image for both AMD64 (standard servers) and ARM64 (Mac M1/M2, Raspberry Pi) architectures.
+> The `--push` flag uploads the image to Docker Hub. Remove it if you only want to build locally.
+
+#### Step 2: Run the Container
+
+**Using environment variable directly:**
+```bash
+docker run -d -p 3000:3000 -e GOOGLE_API_KEY=your_api_key dream-interpretation
+```
+
+**Or using .env file:**
+```bash
+docker run -d -p 3000:3000 --env-file .env dream-interpretation
+```
+
+#### Step 3: Access the Application
+Open your browser and navigate to `http://localhost:3000`
+
+### 📋 Useful Docker Commands
+
+```bash
+# View running containers
+docker ps
+
+# Stop the container
+docker stop <container_id>
+
+# Remove the container
+docker rm <container_id>
+```
 
 ## 🤝 Contributing
 

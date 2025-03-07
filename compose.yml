@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  dream-interpretation:
+    image: devehab/dream-interpretation:latest  # Replace with your Docker Hub image
+    container_name: dream-interpretation
+    restart: unless-stopped
+    ports:
+      - "3000:3000"  # Expose the application on port 3000
+    environment:
+      - FLASK_ENV=production  # Example: Set environment variables if needed
+      - FLASK_APP=app.py
+      - GOOGLE_API_KEY=your_api_key
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
